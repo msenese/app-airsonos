@@ -5,23 +5,19 @@
 # Runs the AirSonos server
 # ==============================================================================
 declare -a options
-
 bashio::log.info 'Starting the AirSonos server...'
-
 # Non-interactive
 options+=(-Z)
-
 # Configuration file
 options+=(-x '/config/airsonos.xml')
-
 # Update configuration file when new devices where detected
-options+=(-I)
-
+# Disabled: -I auto-saves the config on every scan and silently re-enables
+# any device you've manually disabled, ignoring what's saved on disk.
+# options+=(-I)
 # Bind to a specific interface
 if bashio::config.has_value 'address'; then
     options+=(-b "$(bashio::config 'address'):$(bashio::config 'port')")
 fi
-
 # Find the matching AirSonos log level
 if bashio::config.exists 'log_level'; then
     case "$(bashio::string.lower "$(bashio::config 'log_level')")" in
@@ -42,14 +38,11 @@ if bashio::config.exists 'log_level'; then
             ;;
     esac
 fi
-
 # Set latency
 options+=(-l "$(bashio::config 'latency_rtp'):$(bashio::config 'latency_http')")
-
 # Drift mode?
 if bashio::config.true 'drift'; then
     options+=(-r)
 fi
-
 # Run the AirSonos server
 exec airsonos "${options[@]}"
